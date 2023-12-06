@@ -16,33 +16,48 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="2v6-vo-rdl">
-                                <rect key="frame" x="16" y="59" width="361" height="361"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" secondItem="2v6-vo-rdl" secondAttribute="height" multiplier="1:1" id="9TU-8O-qhx"/>
-                                </constraints>
-                            </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cQU-Ua-k3e">
-                                <rect key="frame" x="159" y="783" width="75" height="35"/>
+                                <rect key="frame" x="16" y="471" width="361" height="347"/>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Tap to Referee"/>
                                 <connections>
                                     <action selector="takePhoto:" destination="BYZ-38-t0r" eventType="touchUpInside" id="YNJ-6i-L4D"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rBH-Uv-6vM">
+                                <rect key="frame" x="219.33333333333337" y="59" width="157.66666666666663" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Enter OpenAI Key"/>
+                                <connections>
+                                    <action selector="apiKeyButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="LUH-ZN-X6t"/>
+                                </connections>
+                            </button>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="2v6-vo-rdl">
+                                <rect key="frame" x="16" y="102" width="361" height="361"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="2v6-vo-rdl" secondAttribute="height" multiplier="1:1" id="9TU-8O-qhx"/>
+                                </constraints>
+                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="cQU-Ua-k3e" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="08S-lS-176"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="cQU-Ua-k3e" secondAttribute="trailing" constant="16" id="1Oo-cY-0Ad"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="rBH-Uv-6vM" secondAttribute="trailing" constant="16" id="CAY-tF-V1F"/>
                             <constraint firstItem="cQU-Ua-k3e" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="MPC-NY-AEh"/>
-                            <constraint firstItem="cQU-Ua-k3e" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="NWU-aI-wUq"/>
                             <constraint firstItem="2v6-vo-rdl" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="TXI-kX-pnk"/>
-                            <constraint firstItem="2v6-vo-rdl" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="kQf-5f-x6b"/>
+                            <constraint firstItem="rBH-Uv-6vM" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="6Tk-OE-BBY" secondAttribute="leading" symbolic="YES" id="VAX-cf-UCw"/>
+                            <constraint firstItem="rBH-Uv-6vM" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="Xof-Xl-mwA"/>
+                            <constraint firstItem="2v6-vo-rdl" firstAttribute="top" secondItem="rBH-Uv-6vM" secondAttribute="bottom" constant="8" symbolic="YES" id="itW-dh-MT5"/>
+                            <constraint firstItem="cQU-Ua-k3e" firstAttribute="top" secondItem="2v6-vo-rdl" secondAttribute="bottom" constant="8" symbolic="YES" id="tEE-Py-47Z"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="2v6-vo-rdl" secondAttribute="trailing" constant="16" id="wgS-vD-dHI"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="apiKeyButton" destination="rBH-Uv-6vM" id="Jb0-Z1-NEJ"/>
                         <outlet property="imageView" destination="2v6-vo-rdl" id="cr0-FV-wTc"/>
+                        <outlet property="takePhotoButton" destination="cQU-Ua-k3e" id="7PF-uf-Utf"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

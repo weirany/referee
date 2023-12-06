@@ -4,12 +4,52 @@ import AVFoundation
 class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     
     @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var apiKeyButton: UIButton!
+    @IBOutlet weak var takePhotoButton: UIButton!
+    
+    let userDefaultsKey = "OpenAIKey"
+
     let captureSession = AVCaptureSession()
     var photoOutput = AVCapturePhotoOutput()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        updateButtonAndTakePhotoButtonState()
         setupCameraSession()
+    }
+    
+    @IBAction func apiKeyButtonTapped(_ sender: UIButton) {
+        if UserDefaults.standard.string(forKey: userDefaultsKey) != nil {
+            // Clear the stored key and update the button title
+            UserDefaults.standard.removeObject(forKey: userDefaultsKey)
+            updateButtonAndTakePhotoButtonState()
+        } else {
+            // Prompt the user to enter the API key
+            let alert = UIAlertController(title: "Enter API Key", message: nil, preferredStyle: .alert)
+            alert.addTextField { textField in
+                textField.placeholder = "API Key"
+            }
+            let submitAction = UIAlertAction(title: "Submit", style: .default) { [unowned alert] _ in
+                let textField = alert.textFields![0]
+                if let apiKey = textField.text, !apiKey.isEmpty {
+                    // Store the API key in UserDefaults and update the button title
+                    UserDefaults.standard.set(apiKey, forKey: self.userDefaultsKey)
+                    self.updateButtonAndTakePhotoButtonState()
+                }
+            }
+            alert.addAction(submitAction)
+            present(alert, animated: true)
+        }
+    }
+    
+    func updateButtonAndTakePhotoButtonState() {
+        if UserDefaults.standard.string(forKey: userDefaultsKey) != nil {
+            apiKeyButton.setTitle("Clear OpenAI Key", for: .normal)
+            takePhotoButton.isEnabled = true
+        } else {
+            apiKeyButton.setTitle("Enter OpenAI Key", for: .normal)
+            takePhotoButton.isEnabled = false
+        }
     }
     
     func setupCameraSession() {
