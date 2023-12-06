@@ -8,7 +8,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     @IBOutlet weak var takePhotoButton: UIButton!
     
     let userDefaultsKey = "OpenAIKey"
-
+    
     let captureSession = AVCaptureSession()
     var photoOutput = AVCapturePhotoOutput()
     
@@ -20,11 +20,9 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     
     @IBAction func apiKeyButtonTapped(_ sender: UIButton) {
         if UserDefaults.standard.string(forKey: userDefaultsKey) != nil {
-            // Clear the stored key and update the button title
             UserDefaults.standard.removeObject(forKey: userDefaultsKey)
             updateButtonAndTakePhotoButtonState()
         } else {
-            // Prompt the user to enter the API key
             let alert = UIAlertController(title: "Enter API Key", message: nil, preferredStyle: .alert)
             alert.addTextField { textField in
                 textField.placeholder = "API Key"
@@ -32,7 +30,6 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             let submitAction = UIAlertAction(title: "Submit", style: .default) { [unowned alert] _ in
                 let textField = alert.textFields![0]
                 if let apiKey = textField.text, !apiKey.isEmpty {
-                    // Store the API key in UserDefaults and update the button title
                     UserDefaults.standard.set(apiKey, forKey: self.userDefaultsKey)
                     self.updateButtonAndTakePhotoButtonState()
                 }
@@ -55,7 +52,6 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     func setupCameraSession() {
         captureSession.beginConfiguration()
         
-        // Setting up the device
         let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back)
         guard let backCamera = deviceDiscoverySession.devices.first,
               let input = try? AVCaptureDeviceInput(device: backCamera) else {
@@ -67,7 +63,6 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             captureSession.addInput(input)
         }
         
-        // Setting up the output
         if captureSession.canAddOutput(photoOutput) {
             captureSession.addOutput(photoOutput)
         }
@@ -77,7 +72,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     
     @IBAction func takePhoto(_ sender: UIButton) {
         let photoSettings = AVCapturePhotoSettings()
-        photoSettings.flashMode = .auto // or .off, .on based on your requirement
+        photoSettings.flashMode = .auto
         photoOutput.capturePhoto(with: photoSettings, delegate: self)
     }
     
@@ -88,8 +83,8 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             // Resize the image to 512x512 pixels
             let resizedImage = resizeImage(image: croppedImage, targetSize: CGSize(width: 512, height: 512))
             imageView.image = resizedImage
-            let base64String = resizedImage.jpegData(compressionQuality: 1.0)?.base64EncodedString()
-            print(base64String ?? "Error in image conversion")
+            //            let base64String = resizedImage.jpegData(compressionQuality: 1.0)?.base64EncodedString()
+            //            print(base64String ?? "Error in image conversion")
         }
     }
     
