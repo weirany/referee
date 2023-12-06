@@ -41,6 +41,9 @@
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="2v6-vo-rdl" secondAttribute="trailing" constant="16" id="wgS-vD-dHI"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="imageView" destination="2v6-vo-rdl" id="cr0-FV-wTc"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
