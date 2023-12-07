@@ -153,7 +153,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
             
-            let systemMessageContent = "You are a Chinese military chess (luzhanqi) independent referee. You will be shown two pieces. Based on the ranks of the two pieces, you compare them. Then you output the result of which color(s) of the piece(s) should be removed from the board."
+            let systemMessageContent = "As an independent referee for Chinese military chess (Luzhanqi), you will be presented with two pieces: one black and one red. Your task is to compare their ranks and determine the outcome. Please announce which piece(s) should be removed from the board, indicating only by their color. Do not provide any explanations, simply state the color(s) of the piece(s) that must be removed based on the comparison result."
             
             let payload: [String: Any] = [
                 "model": "gpt-4-vision-preview",
