@@ -1,5 +1,6 @@
 import UIKit
 import AVFoundation
+import Foundation
 
 class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     
@@ -83,8 +84,16 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             // Resize the image to 512x512 pixels
             let resizedImage = resizeImage(image: croppedImage, targetSize: CGSize(width: 512, height: 512))
             imageView.image = resizedImage
-            //            let base64String = resizedImage.jpegData(compressionQuality: 1.0)?.base64EncodedString()
-            //            print(base64String ?? "Error in image conversion")
+            if let base64String = resizedImage.jpegData(compressionQuality: 1.0)?.base64EncodedString() {
+                callGPT4VisionAPI(with: base64String) { result in
+                    switch result {
+                    case .success(let response):
+                        print(response)
+                    case .failure(let error):
+                        print("Error: \(error.localizedDescription)")
+                    }
+                }
+            }
         }
     }
     
@@ -133,6 +142,65 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
         super.viewWillDisappear(animated)
         DispatchQueue.global(qos: .userInitiated).async {
             self.captureSession.stopRunning()
+        }
+    }
+    
+    func callGPT4VisionAPI(with imageBase64: String, completion: @escaping (Result<String, Error>) -> Void) {
+        if let key = UserDefaults.standard.string(forKey: userDefaultsKey) {
+            let url = URL(string: "https://api.openai.com/v1/chat/completions")!
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+            
+            let systemMessageContent = "You are a Chinese military chess (luzhanqi) independent referee. You will be shown two pieces. Based on the ranks of the two pieces, you compare them. Then you output the result of which color(s) of the piece(s) should be removed from the board."
+            
+            let payload: [String: Any] = [
+                "model": "gpt-4-vision-preview",
+                "messages": [
+                    ["role": "system", "content": systemMessageContent],
+                    [
+                        "role": "user",
+                        "content": [
+                            ["type": "image_url", "image_url": ["url": "data:image/jpeg;base64,\(imageBase64)"]]
+                        ]
+                    ]
+                ],
+                "max_tokens": 1000
+            ]
+            
+            do {
+                request.httpBody = try JSONSerialization.data(withJSONObject: payload, options: [])
+            } catch {
+                completion(.failure(error))
+                return
+            }
+            
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                guard let data = data else {
+                    completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                    return
+                }
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                       let choices = json["choices"] as? [[String: Any]],
+                       let firstChoice = choices.first,
+                       let message = firstChoice["message"] as? [String: Any],
+                       let content = message["content"] as? String {
+                        completion(.success(content))
+                    } else {
+                        completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON structure"])))
+                    }
+                } catch {
+                    completion(.failure(error))
+                }
+            }
+            
+            task.resume()
         }
     }
 }
