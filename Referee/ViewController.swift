@@ -19,6 +19,40 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
         setupCameraSession()
     }
     
+    func callAPIAndPlayMP3(_ text: String) {
+        let urlString = "https://api.openai.com/v1/audio/speech"
+        guard let url = URL(string: urlString) else { return }
+        
+        guard let key = UserDefaults.standard.string(forKey: userDefaultsKey) else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "model": "tts-1",
+            "input": text,
+            "voice": "alloy",
+        ]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
+        
+        let session = URLSession.shared
+        session.dataTask(with: request) { data, response, error in
+            guard let data = data, error == nil else { return }
+            self.playMP3FromData(data)
+        }.resume()
+    }
+    
+    func playMP3FromData(_ data: Data) {
+        do {
+            let player = try AVAudioPlayer(data: data)
+            player.prepareToPlay()
+            player.play()
+        } catch {
+            print("Failed to play audio: \(error.localizedDescription)")
+        }
+    }
+    
     @IBAction func apiKeyButtonTapped(_ sender: UIButton) {
         if UserDefaults.standard.string(forKey: userDefaultsKey) != nil {
             UserDefaults.standard.removeObject(forKey: userDefaultsKey)
@@ -89,6 +123,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
                     switch result {
                     case .success(let response):
                         print(response)
+                        self.callAPIAndPlayMP3(response)
                     case .failure(let error):
                         print("Error: \(error.localizedDescription)")
                     }
