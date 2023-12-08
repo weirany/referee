@@ -12,6 +12,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     
     let captureSession = AVCaptureSession()
     var photoOutput = AVCapturePhotoOutput()
+    var audioPlayer: AVAudioPlayer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,9 +46,9 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     
     func playMP3FromData(_ data: Data) {
         do {
-            let player = try AVAudioPlayer(data: data)
-            player.prepareToPlay()
-            player.play()
+            audioPlayer = try AVAudioPlayer(data: data)
+            audioPlayer?.prepareToPlay()
+            audioPlayer?.play()
         } catch {
             print("Failed to play audio: \(error.localizedDescription)")
         }
