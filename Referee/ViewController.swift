@@ -1,15 +1,19 @@
-import UIKit
 import AVFoundation
 import Foundation
+import UIKit
 
 class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     
     @IBOutlet weak var imageView: UIImageView!
-    @IBOutlet weak var apiKeyButton: UIButton!
+    @IBOutlet weak var openAIKeyButton: UIButton!
+    @IBOutlet weak var geminiKeyButton: UIButton!
     @IBOutlet weak var takePhotoButton: UIButton!
     
-    let userDefaultsKey = "OpenAIKey"
-    let prompt = "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. Compare them and announce the outcome by referring to their color, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece. "
+    let openAIKey = "openAIKey"
+    let geminiKey = "geminiKey"
+    let useOpenAI = true  // false to use Gemini Pro Vision
+    let prompt =
+    "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. Compare them and announce the outcome by referring to their color, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece. "
     
     let captureSession = AVCaptureSession()
     var photoOutput = AVCapturePhotoOutput()
@@ -25,7 +29,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
         let urlString = "https://api.openai.com/v1/audio/speech"
         guard let url = URL(string: urlString) else { return }
         
-        guard let key = UserDefaults.standard.string(forKey: userDefaultsKey) else { return }
+        guard let key = UserDefaults.standard.string(forKey: openAIKey) else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
@@ -56,18 +60,23 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     }
     
     @IBAction func apiKeyButtonTapped(_ sender: UIButton) {
-        if UserDefaults.standard.string(forKey: userDefaultsKey) != nil {
-            UserDefaults.standard.removeObject(forKey: userDefaultsKey)
+        // this func handles both key buttons tapped
+        var openAIKeyButton = true
+        if sender.tag == 2 { openAIKeyButton = false }
+        
+        if UserDefaults.standard.string(forKey: openAIKeyButton ? openAIKey : geminiKey) != nil {
+            UserDefaults.standard.removeObject(forKey: openAIKeyButton ? openAIKey : geminiKey)
             updateButtonAndTakePhotoButtonState()
         } else {
             let alert = UIAlertController(title: "Enter API Key", message: nil, preferredStyle: .alert)
             alert.addTextField { textField in
-                textField.placeholder = "API Key"
+                textField.placeholder = (openAIKeyButton ? "OpenAI" : "Gemini") + " API Key"
             }
             let submitAction = UIAlertAction(title: "Submit", style: .default) { [unowned alert] _ in
                 let textField = alert.textFields![0]
                 if let apiKey = textField.text, !apiKey.isEmpty {
-                    UserDefaults.standard.set(apiKey, forKey: self.userDefaultsKey)
+                    UserDefaults.standard.set(
+                        apiKey, forKey: (openAIKeyButton ? self.openAIKey : self.geminiKey))
                     self.updateButtonAndTakePhotoButtonState()
                 }
             }
@@ -77,21 +86,20 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     }
     
     func updateButtonAndTakePhotoButtonState() {
-        if UserDefaults.standard.string(forKey: userDefaultsKey) != nil {
-            apiKeyButton.setTitle("Clear OpenAI Key", for: .normal)
-            takePhotoButton.isEnabled = true
-        } else {
-            apiKeyButton.setTitle("Enter OpenAI Key", for: .normal)
-            takePhotoButton.isEnabled = false
-        }
+        openAIKeyButton.setTitle(UserDefaults.standard.string(forKey: openAIKey) != nil ? "Clear OpenAI Key" : "Enter OpenAI Key", for: .normal)
+        geminiKeyButton.setTitle(UserDefaults.standard.string(forKey: geminiKey) != nil ? "Clear Gemini Key" : "Enter Gemini Key", for: .normal)
+        // Whisper needs OpenAI key so required
+        takePhotoButton.isEnabled = UserDefaults.standard.string(forKey: openAIKey) != nil
     }
     
     func setupCameraSession() {
         captureSession.beginConfiguration()
         
-        let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back)
+        let deviceDiscoverySession = AVCaptureDevice.DiscoverySession(
+            deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .back)
         guard let backCamera = deviceDiscoverySession.devices.first,
-              let input = try? AVCaptureDeviceInput(device: backCamera) else {
+              let input = try? AVCaptureDeviceInput(device: backCamera)
+        else {
             print("Failed to get the camera device")
             return
         }
@@ -113,12 +121,16 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
         photoOutput.capturePhoto(with: photoSettings, delegate: self)
     }
     
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+    func photoOutput(
+        _ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?
+    ) {
         if let imageData = photo.fileDataRepresentation(),
            let image = UIImage(data: imageData),
-           let croppedImage = cropToSquare(image: image) {
+           let croppedImage = cropToSquare(image: image)
+        {
             // Resize the image to 512x512 pixels
-            let resizedImage = resizeImage(image: croppedImage, targetSize: CGSize(width: 512, height: 512))
+            let resizedImage = resizeImage(
+                image: croppedImage, targetSize: CGSize(width: 512, height: 512))
             imageView.image = resizedImage
             if let base64String = resizedImage.jpegData(compressionQuality: 1.0)?.base64EncodedString() {
                 callGPT4VisionAPI(with: base64String) { result in
@@ -146,7 +158,8 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             height: cropSize
         )
         
-        UIGraphicsBeginImageContextWithOptions(CGSize(width: cropSize, height: cropSize), false, image.scale)
+        UIGraphicsBeginImageContextWithOptions(
+            CGSize(width: cropSize, height: cropSize), false, image.scale)
         image.draw(at: CGPoint(x: -cropRect.origin.x, y: -cropRect.origin.y))
         let croppedImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
@@ -154,12 +167,14 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
         return croppedImage
     }
     
-    
     func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
         let size = image.size
-        let widthRatio  = targetSize.width  / size.width
+        let widthRatio = targetSize.width / size.width
         let heightRatio = targetSize.height / size.height
-        let newSize = widthRatio > heightRatio ? CGSize(width: size.width * heightRatio, height: size.height * heightRatio) : CGSize(width: size.width * widthRatio, height: size.height * widthRatio)
+        let newSize =
+        widthRatio > heightRatio
+        ? CGSize(width: size.width * heightRatio, height: size.height * heightRatio)
+        : CGSize(width: size.width * widthRatio, height: size.height * widthRatio)
         let rect = CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height)
         UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
         image.draw(in: rect)
@@ -182,8 +197,10 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
         }
     }
     
-    func callGPT4VisionAPI(with imageBase64: String, completion: @escaping (Result<String, Error>) -> Void) {
-        if let key = UserDefaults.standard.string(forKey: userDefaultsKey) {
+    func callGPT4VisionAPI(
+        with imageBase64: String, completion: @escaping (Result<String, Error>) -> Void
+    ) {
+        if let key = UserDefaults.standard.string(forKey: openAIKey) {
             let url = URL(string: "https://api.openai.com/v1/chat/completions")!
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
@@ -199,11 +216,14 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
                     [
                         "role": "user",
                         "content": [
-                            ["type": "image_url", "image_url": ["url": "data:image/jpeg;base64,\(imageBase64)", "detail": "low"]]
-                        ]
-                    ]
+                            [
+                                "type": "image_url",
+                                "image_url": ["url": "data:image/jpeg;base64,\(imageBase64)", "detail": "low"],
+                            ]
+                        ],
+                    ],
                 ],
-                "max_tokens": 1000
+                "max_tokens": 1000,
             ]
             
             do {
@@ -219,7 +239,10 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
                     return
                 }
                 guard let data = data else {
-                    completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                    completion(
+                        .failure(
+                            NSError(
+                                domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
                     return
                 }
                 do {
@@ -227,10 +250,15 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
                        let choices = json["choices"] as? [[String: Any]],
                        let firstChoice = choices.first,
                        let message = firstChoice["message"] as? [String: Any],
-                       let content = message["content"] as? String {
+                       let content = message["content"] as? String
+                    {
                         completion(.success(content))
                     } else {
-                        completion(.failure(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid JSON structure"])))
+                        completion(
+                            .failure(
+                                NSError(
+                                    domain: "", code: 0,
+                                    userInfo: [NSLocalizedDescriptionKey: "Invalid JSON structure"])))
                     }
                 } catch {
                     completion(.failure(error))

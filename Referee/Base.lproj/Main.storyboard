@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22155" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22131"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -19,14 +19,27 @@
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="tsy-09-3Za">
                                 <rect key="frame" x="16" y="59" width="361" height="759"/>
                                 <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rBH-Uv-6vM">
+                                    <stackView opaque="NO" contentMode="scaleToFill" spacing="9" translatesAutoresizingMaskIntoConstraints="NO" id="Bce-6n-K0s">
                                         <rect key="frame" x="0.0" y="0.0" width="361" height="34.333333333333336"/>
-                                        <state key="normal" title="Button"/>
-                                        <buttonConfiguration key="configuration" style="filled" title="Enter OpenAI Key"/>
-                                        <connections>
-                                            <action selector="apiKeyButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="LUH-ZN-X6t"/>
-                                        </connections>
-                                    </button>
+                                        <subviews>
+                                            <button opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="rBH-Uv-6vM">
+                                                <rect key="frame" x="0.0" y="0.0" width="176" height="34.333333333333336"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="filled" title="Enter OpenAI Key"/>
+                                                <connections>
+                                                    <action selector="apiKeyButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="LUH-ZN-X6t"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" tag="2" contentMode="scaleToFill" verticalHuggingPriority="251" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="v9N-jZ-I3Y">
+                                                <rect key="frame" x="185" y="0.0" width="176" height="34.333333333333336"/>
+                                                <state key="normal" title="Button"/>
+                                                <buttonConfiguration key="configuration" style="filled" title="Enter Gemini Key"/>
+                                                <connections>
+                                                    <action selector="apiKeyButtonTapped:" destination="BYZ-38-t0r" eventType="touchUpInside" id="RhP-vD-WaM"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                    </stackView>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="rv6-qZ-T8Z">
                                         <rect key="frame" x="0.0" y="44.333333333333314" width="361" height="714.66666666666674"/>
                                         <subviews>
@@ -60,8 +73,9 @@
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="apiKeyButton" destination="rBH-Uv-6vM" id="Jb0-Z1-NEJ"/>
+                        <outlet property="geminiKeyButton" destination="v9N-jZ-I3Y" id="dFW-Ja-fiq"/>
                         <outlet property="imageView" destination="2v6-vo-rdl" id="cr0-FV-wTc"/>
+                        <outlet property="openAIKeyButton" destination="rBH-Uv-6vM" id="FIT-Kc-0e5"/>
                         <outlet property="takePhotoButton" destination="cQU-Ua-k3e" id="7PF-uf-Utf"/>
                     </connections>
                 </viewController>
