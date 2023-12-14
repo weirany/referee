@@ -13,7 +13,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     let geminiKey = "geminiKey"
     let useOpenAI = true  // false to use Gemini Pro Vision
     let prompt =
-    "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. Compare them and announce the outcome by referring to their color, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece. "
+    "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. First you examine the photo carefully and identify their ranks and colors. Compare them and announce the outcome by referring to their color, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece. "
     
     let captureSession = AVCaptureSession()
     var photoOutput = AVCapturePhotoOutput()
