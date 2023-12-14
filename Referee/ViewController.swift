@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import GoogleGenerativeAI
 import UIKit
 
 class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
@@ -11,7 +12,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     
     let openAIKey = "openAIKey"
     let geminiKey = "geminiKey"
-    let useOpenAI = true  // false to use Gemini Pro Vision
+    let useOpenAI = false  // false to use Gemini Pro Vision
     let prompt =
     "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. First you examine the photo carefully and identify their ranks and colors. Compare them and announce the outcome by referring to their color, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece. "
     
@@ -86,8 +87,12 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     }
     
     func updateButtonAndTakePhotoButtonState() {
-        openAIKeyButton.setTitle(UserDefaults.standard.string(forKey: openAIKey) != nil ? "Clear OpenAI Key" : "Enter OpenAI Key", for: .normal)
-        geminiKeyButton.setTitle(UserDefaults.standard.string(forKey: geminiKey) != nil ? "Clear Gemini Key" : "Enter Gemini Key", for: .normal)
+        openAIKeyButton.setTitle(
+            UserDefaults.standard.string(forKey: openAIKey) != nil
+            ? "Clear OpenAI Key" : "Enter OpenAI Key", for: .normal)
+        geminiKeyButton.setTitle(
+            UserDefaults.standard.string(forKey: geminiKey) != nil
+            ? "Clear Gemini Key" : "Enter Gemini Key", for: .normal)
         // Whisper needs OpenAI key so required
         takePhotoButton.isEnabled = UserDefaults.standard.string(forKey: openAIKey) != nil
     }
@@ -132,17 +137,51 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             let resizedImage = resizeImage(
                 image: croppedImage, targetSize: CGSize(width: 512, height: 512))
             imageView.image = resizedImage
-            if let base64String = resizedImage.jpegData(compressionQuality: 1.0)?.base64EncodedString() {
-                callGPT4VisionAPI(with: base64String) { result in
+            
+            // begin to referee
+            if useOpenAI {
+                OpenAIReferee(image) { result in
                     switch result {
                     case .success(let response):
-                        print(response)
-                        self.callAPIAndPlayMP3(response)
+                        print("Response: \(response)")
+                        //                        self.callAPIAndPlayMP3(response)
                     case .failure(let error):
                         print("Error: \(error.localizedDescription)")
                     }
                 }
+            } else {
+                Task {
+                    let response = try await GeminiReferee(image)
+                    print("Response: \(response)")
+                    //                        self.callAPIAndPlayMP3(response)
+                }
             }
+        }
+    }
+    
+    func OpenAIReferee(_ image: UIImage, completion: @escaping (Result<String, Error>) -> Void) {
+        if let base64String = image.jpegData(compressionQuality: 1.0)?.base64EncodedString() {
+            callGPT4VisionAPI(with: base64String) { result in
+                switch result {
+                case .success(let response):
+                    completion(.success(response))
+                case .failure(let error):
+                    completion(.failure(error))
+                }
+            }
+        }
+    }
+    
+    func GeminiReferee(_ image: UIImage) async throws -> String {
+        guard let key = UserDefaults.standard.string(forKey: geminiKey) else { return "" }
+        let model = GenerativeModel(name: "gemini-pro-vision", apiKey: key)
+        
+        let response = try await model.generateContent(prompt, image)
+        if let text = response.text {
+            return text
+        }
+        else {
+            return ""
         }
     }
     
