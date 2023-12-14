@@ -14,7 +14,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     let geminiKey = "geminiKey"
     let useOpenAI = false  // false to use Gemini Pro Vision
     let prompt =
-    "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. First you examine the photo carefully and identify their ranks and colors. Compare them and announce the outcome by referring to their color, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece. "
+    "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. First you examine the photo carefully and identify their ranks and colors. Compare them and announce the outcome by referring to their color, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece."
     
     let captureSession = AVCaptureSession()
     var photoOutput = AVCapturePhotoOutput()
@@ -143,7 +143,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
                 OpenAIReferee(image) { result in
                     switch result {
                     case .success(let response):
-                        print("Response: \(response)")
+                        print(response)
                         //                        self.callAPIAndPlayMP3(response)
                     case .failure(let error):
                         print("Error: \(error.localizedDescription)")
@@ -152,7 +152,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             } else {
                 Task {
                     let response = try await GeminiReferee(image)
-                    print("Response: \(response)")
+                    print(response)
                     //                        self.callAPIAndPlayMP3(response)
                 }
             }
@@ -174,13 +174,15 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     
     func GeminiReferee(_ image: UIImage) async throws -> String {
         guard let key = UserDefaults.standard.string(forKey: geminiKey) else { return "" }
-        let model = GenerativeModel(name: "gemini-pro-vision", apiKey: key)
+        let config = GenerationConfig(
+            maxOutputTokens: 1000
+        )
+        let model = GenerativeModel(name: "gemini-pro-vision", apiKey: key, generationConfig: config)
         
         let response = try await model.generateContent(prompt, image)
         if let text = response.text {
             return text
-        }
-        else {
+        } else {
             return ""
         }
     }
