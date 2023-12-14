@@ -9,6 +9,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     @IBOutlet weak var takePhotoButton: UIButton!
     
     let userDefaultsKey = "OpenAIKey"
+    let prompt = "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. Compare them and announce the outcome by referring to their color, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece. "
     
     let captureSession = AVCaptureSession()
     var photoOutput = AVCapturePhotoOutput()
@@ -189,7 +190,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.addValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
             
-            let systemMessageContent = "As an independent referee for Chinese military chess (Luzhanqi), you will be presented with two pieces: one black and one red. Your task is to compare their ranks and determine the outcome. Do not provide any explanations, simply state the color(s) of the piece(s) that must be removed from the board based on the comparison result."
+            let systemMessageContent = prompt
             
             let payload: [String: Any] = [
                 "model": "gpt-4-vision-preview",
@@ -198,7 +199,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
                     [
                         "role": "user",
                         "content": [
-                            ["type": "image_url", "image_url": ["url": "data:image/jpeg;base64,\(imageBase64)"]]
+                            ["type": "image_url", "image_url": ["url": "data:image/jpeg;base64,\(imageBase64)", "detail": "low"]]
                         ]
                     ]
                 ],
