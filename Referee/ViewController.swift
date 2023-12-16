@@ -9,10 +9,11 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     @IBOutlet weak var openAIKeyButton: UIButton!
     @IBOutlet weak var geminiKeyButton: UIButton!
     @IBOutlet weak var takePhotoButton: UIButton!
+    @IBOutlet weak var geminiSwitch: UISwitch!
     
     let openAIKey = "openAIKey"
     let geminiKey = "geminiKey"
-    let useOpenAI = false  // false to use Gemini Pro Vision
+    var useGemini = false  // true to use Gemini Pro Vision. false to use GPT4V
     let prompt =
     "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. First you examine the photo carefully and identify their ranks and colors. Compare them and announce the outcome by referring to their color, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece."
     
@@ -22,6 +23,9 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        geminiSwitch.addTarget(self, action: #selector(switchChanged), for: .valueChanged)
+        
         updateButtonAndTakePhotoButtonState()
         setupCameraSession()
     }
@@ -58,6 +62,10 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
         } catch {
             print("Failed to play audio: \(error.localizedDescription)")
         }
+    }
+    
+    @IBAction func switchChanged(_ sender: UISwitch) {
+        useGemini = sender.isOn
     }
     
     @IBAction func apiKeyButtonTapped(_ sender: UIButton) {
@@ -139,7 +147,13 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             imageView.image = resizedImage
             
             // begin to referee
-            if useOpenAI {
+            if useGemini {
+                Task {
+                    let response = try await GeminiReferee(image)
+                    print(response)
+                    //                        self.callAPIAndPlayMP3(response)
+                }
+            } else {
                 OpenAIReferee(image) { result in
                     switch result {
                     case .success(let response):
@@ -148,12 +162,6 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
                     case .failure(let error):
                         print("Error: \(error.localizedDescription)")
                     }
-                }
-            } else {
-                Task {
-                    let response = try await GeminiReferee(image)
-                    print(response)
-                    //                        self.callAPIAndPlayMP3(response)
                 }
             }
         }
