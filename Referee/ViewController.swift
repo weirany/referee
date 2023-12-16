@@ -15,7 +15,7 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
     let geminiKey = "geminiKey"
     var useGemini = false  // true to use Gemini Pro Vision. false to use GPT4V
     let prompt =
-    "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. First you examine the photo carefully and identify their ranks and colors. Compare them and announce the outcome by referring to their color, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece."
+    "You act as an independent referee for Chinese military chess (Luzhanqi). Rank comparison: Field Marshal > General > Major General > Brigadier > Colonel > Major > Captain > Lieutenant > Engineer. Take a deep breath and work on this step by step. First you examine the photo carefully and identify their ranks and colors. Compare them and announce the outcome by referring to their color with a sense of humor but still concise, avoiding mention of position such as left/right. Remember, no talking about the ranks, never! No explanations. There is no other color but a black piece and a red piece. Then say exactly the same again in Chinese without explanation."
     
     let captureSession = AVCaptureSession()
     var photoOutput = AVCapturePhotoOutput()
@@ -150,14 +150,20 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
             if useGemini {
                 Task {
                     let response = try await GeminiReferee(image)
-                    print(response)
+                    DispatchQueue.main.async {
+                        self.showAlert(with: response)
+                    }
+//                    print(response)
                     //                        self.callAPIAndPlayMP3(response)
                 }
             } else {
                 OpenAIReferee(image) { result in
                     switch result {
                     case .success(let response):
-                        print(response)
+                        DispatchQueue.main.async {
+                            self.showAlert(with: response)
+                        }
+//                        print(response)
                         //                        self.callAPIAndPlayMP3(response)
                     case .failure(let error):
                         print("Error: \(error.localizedDescription)")
@@ -165,6 +171,13 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
                 }
             }
         }
+    }
+    
+    func showAlert(with message: String) {
+        let alertController = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+        alertController.addAction(okAction)
+        present(alertController, animated: true, completion: nil)
     }
     
     func OpenAIReferee(_ image: UIImage, completion: @escaping (Result<String, Error>) -> Void) {
