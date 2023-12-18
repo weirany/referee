@@ -151,20 +151,18 @@ class ViewController: UIViewController, AVCapturePhotoCaptureDelegate {
                 Task {
                     let response = try await GeminiReferee(image)
                     DispatchQueue.main.async {
-                        self.showAlert(with: response)
+                        //                        self.showAlert(with: response)
+                        self.callAPIAndPlayMP3(response)
                     }
-//                    print(response)
-                    //                        self.callAPIAndPlayMP3(response)
                 }
             } else {
                 OpenAIReferee(image) { result in
                     switch result {
                     case .success(let response):
                         DispatchQueue.main.async {
-                            self.showAlert(with: response)
+                            //                            self.showAlert(with: response)
+                            self.callAPIAndPlayMP3(response)
                         }
-//                        print(response)
-                        //                        self.callAPIAndPlayMP3(response)
                     case .failure(let error):
                         print("Error: \(error.localizedDescription)")
                     }
